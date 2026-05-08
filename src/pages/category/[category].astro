@@ -1,0 +1,41 @@
+---
+// src/pages/category/[category].astro
+import Layout from '../../layouts/Layout.astro';
+import GameGrid from '../../components/GameGrid.astro';
+import { getCategories, getGamesByCategory } from '../../utils/data';
+
+export async function getStaticPaths() {
+  const categories = getCategories();
+  
+  return categories.map(category => {
+    return {
+      params: { category: category.toLowerCase() },
+      props: { categoryName: category },
+    };
+  });
+}
+
+const { categoryName } = Astro.props;
+const categoryGames = getGamesByCategory(categoryName);
+---
+
+<Layout title={`${categoryName} Games - poko100`} description={`Play the best free online ${categoryName} games on poko100.`}>
+  <div class="relative w-full overflow-hidden bg-synth-dark border-b border-neon-purple/30 py-16 mb-12">
+    <!-- Animated Grid Background -->
+    <div class="absolute inset-0 bg-synthwave-grid bg-[length:40px_40px] opacity-20 transform perspective-[1000px] rotateX-[60deg] origin-bottom animate-float"></div>
+    
+    <!-- Glowing Orb -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-neon-blue rounded-full mix-blend-screen filter blur-[150px] opacity-20 animate-pulse"></div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+      <h1 class="text-4xl md:text-5xl font-retro text-white tracking-tighter mb-4 leading-tight">
+        {categoryName} <span class="text-neon-blue text-gradient">GAMES</span>
+      </h1>
+      <p class="text-gray-300 font-cyber tracking-widest uppercase">
+        {categoryGames.length} GAMES AVAILABLE
+      </p>
+    </div>
+  </div>
+
+  <GameGrid games={categoryGames} />
+</Layout>

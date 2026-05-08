@@ -1,0 +1,45 @@
+---
+// Hero.astro
+---
+<div class="relative w-full overflow-hidden border-b border-neon-blue/30 bg-synth-dark py-20 lg:py-32 mb-12">
+  <!-- Animated Grid Background -->
+  <div class="absolute inset-0 bg-synthwave-grid bg-[length:40px_40px] opacity-20 transform perspective-[1000px] rotateX-[60deg] origin-bottom animate-float"></div>
+  
+  <!-- Glowing Orbs -->
+  <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-neon-purple rounded-full mix-blend-screen filter blur-[100px] opacity-30 animate-pulse"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-64 h-64 bg-neon-pink rounded-full mix-blend-screen filter blur-[100px] opacity-20 animate-pulse" style="animation-delay: 1s;"></div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neon-blue/50 bg-neon-blue/10 text-neon-blue font-cyber text-sm mb-6 animate-flicker shadow-neon-blue">
+      <span class="w-2 h-2 rounded-full bg-neon-blue animate-ping"></span>
+      SYSTEM ONLINE // READY TO PLAY
+    </div>
+    
+    <h1 class="text-4xl md:text-6xl lg:text-7xl font-retro text-white tracking-tighter mb-6 leading-tight drop-shadow-[0_0_15px_rgba(255,0,255,0.8)]">
+      ENTER THE <br class="hidden md:block" /> <span class="text-neon-pink text-gradient">NEONCADE</span>
+    </h1>
+    
+    <p class="max-w-2xl mx-auto text-lg md:text-xl text-gray-300 font-sans mb-10 leading-relaxed">
+      Instant HTML5 gaming portal. No downloads, no installs. Just pure retro-synthwave adrenaline. Thousands of games waiting for you.
+    </p>
+    
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <button 
+        onclick="document.getElementById('trending').scrollIntoView({behavior: 'smooth'})"
+        class="px-8 py-4 bg-neon-pink text-white font-cyber font-bold tracking-wider rounded-lg border border-transparent hover:bg-transparent hover:border-neon-pink hover:text-neon-pink hover:shadow-neon-pink transition-all duration-300 transform hover:-translate-y-1 w-full sm:w-auto text-center"
+      >
+        START PLAYING
+      </button>
+      <button 
+        onclick="window.dispatchEvent(new Event('open-search'))"
+        class="px-8 py-4 bg-transparent text-white font-cyber font-bold tracking-wider rounded-lg border border-neon-blue shadow-[0_0_10px_rgba(0,255,255,0.2)] hover:shadow-neon-blue hover:bg-neon-blue/10 transition-all duration-300 transform hover:-translate-y-1 w-full sm:w-auto text-center flex items-center justify-center gap-2"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        SEARCH ARCHIVES
+      </button>
+    </div>
+  </div>
+  
+  <!-- CRT overlay just for the hero -->
+  <div class="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px] z-20"></div>
+</div>

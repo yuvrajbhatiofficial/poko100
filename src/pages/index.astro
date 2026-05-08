@@ -1,0 +1,64 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+import { allGames, slugify } from '../utils/data';
+
+// To mimic the massive Poki grid, we'll render a large batch of games directly.
+// You can adjust this number. For an infinite feel, 150-200 is great.
+const gamesToDisplay = allGames.slice(0, 150);
+
+// Helper function to create the masonry look
+const getSpanClass = (index: number) => {
+  if (index % 11 === 0) return 'col-span-2 row-span-2'; // Big square
+  if (index % 7 === 0) return 'col-span-2 row-span-1';  // Wide rectangle
+  if (index % 17 === 0) return 'col-span-1 row-span-2'; // Tall rectangle
+  return 'col-span-1 row-span-1';                       // Normal
+};
+---
+
+<Layout title="Play Awesome Games! - poko100">
+  
+  <div class="w-full h-full pb-16">
+    <!-- Main Game Grid -->
+    <!-- The grid-flow-dense ensures no empty gaps are left by the varying tile sizes -->
+    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-2 md:gap-3 auto-rows-[110px] sm:auto-rows-[120px] md:auto-rows-[130px] grid-flow-dense max-w-[1920px] mx-auto">
+      
+      {gamesToDisplay.map((game, index) => {
+        const spanClass = getSpanClass(index);
+        
+        // AD SLOT logic: place an ad every 15 items
+        if (index > 0 && index % 15 === 0) {
+          return (
+            <div class="col-span-2 row-span-2 bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl md:rounded-3xl flex items-center justify-center relative overflow-hidden group shadow-lg">
+              <span class="text-white/50 font-sans text-xl font-black tracking-widest z-10 group-hover:scale-110 group-hover:text-purple-400 transition-all">AD SPACE</span>
+              <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+          );
+        }
+
+        return (
+          <a 
+            href={`/game/${slugify(game.title)}`} 
+            class={`${spanClass} relative group rounded-2xl md:rounded-3xl overflow-hidden block border border-white/10 hover:border-purple-400/50 focus:outline-none focus:border-purple-400 transition-all shadow-lg hover:shadow-purple-500/30 hover:z-10 bg-white/5 backdrop-blur-sm`}
+            aria-label={`Play ${game.title}`}
+          >
+            <!-- Game Thumbnail (Optimized loading) -->
+            <img 
+              src={game.thumb} 
+              alt={game.title} 
+              loading={index < 12 ? "eager" : "lazy"} 
+              fetchpriority={index < 12 ? "high" : "auto"}
+              decoding="async"
+              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out" 
+            />
+            
+            <!-- Very subtle dark gradient at bottom just to give depth -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+          </a>
+        );
+      })}
+
+    </div>
+  </div>
+
+</Layout>

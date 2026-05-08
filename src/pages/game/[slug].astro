@@ -1,0 +1,53 @@
+---
+// src/pages/game/[slug].astro
+import Layout from '../../layouts/Layout.astro';
+import GamePlayer from '../../components/GamePlayer.astro';
+import GameGrid from '../../components/GameGrid.astro';
+import { getGames, slugify, getRelatedGames } from '../../utils/data';
+
+export async function getStaticPaths() {
+  const games = getGames();
+  
+  return games.map(game => {
+    return {
+      params: { slug: slugify(game.title) },
+      props: { game },
+    };
+  });
+}
+
+const { game } = Astro.props;
+const relatedGames = getRelatedGames(game, 6);
+---
+
+<Layout title={`${game.title} - poko100`} description={game.description.substring(0, 160)} image={game.thumb}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <nav class="flex mb-6 text-xs sm:text-sm font-cyber text-gray-400">
+      <ol class="flex items-center space-x-2">
+        <li>
+          <a href="/" class="hover:text-neon-pink transition-colors">HOME</a>
+        </li>
+        <li>
+          <span class="mx-2 text-gray-600">/</span>
+        </li>
+        <li>
+          <a href={`/category/${game.category.toLowerCase()}`} class="hover:text-neon-blue uppercase transition-colors">{game.category}</a>
+        </li>
+        <li>
+          <span class="mx-2 text-gray-600">/</span>
+        </li>
+        <li class="text-white truncate max-w-[150px] sm:max-w-[300px]" aria-current="page">
+          {game.title}
+        </li>
+      </ol>
+    </nav>
+  </div>
+
+  <GamePlayer game={game} />
+
+  {relatedGames.length > 0 && (
+    <div class="mt-8">
+      <GameGrid games={relatedGames} title="RELATED GAMES" />
+    </div>
+  )}
+</Layout>

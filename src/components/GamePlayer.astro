@@ -1,0 +1,112 @@
+---
+// GamePlayer.astro
+import type { Game } from '../utils/data';
+
+interface Props {
+  game: Game;
+}
+
+const { game } = Astro.props;
+---
+<div class="max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 mb-12">
+  <div class="glass rounded-xl overflow-hidden border border-neon-purple/30 shadow-neon-purple/20">
+    <!-- Header -->
+    <div class="bg-synth-dark/80 p-4 border-b border-neon-purple/20 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-4">
+        <img src={game.thumb} alt={game.title} class="w-16 h-12 object-cover rounded" />
+        <div>
+          <h1 class="text-xl sm:text-2xl font-sans font-bold text-white tracking-tight">{game.title}</h1>
+          <a href={`/category/${game.category.toLowerCase()}`} class="text-neon-blue font-cyber text-xs uppercase hover:underline">{game.category}</a>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <!-- Add to favorites (client logic) -->
+        <button class="p-2 rounded bg-synth-dark border border-gray-700 hover:border-neon-pink hover:text-neon-pink transition-colors group" title="Favorite" data-id={game.id} id="player-fav-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-neon-pink"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        </button>
+        <!-- Fullscreen Toggle -->
+        <button id="fullscreen-btn" class="p-2 rounded bg-synth-dark border border-gray-700 hover:border-neon-blue hover:text-neon-blue transition-colors group" title="Fullscreen">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 group-hover:text-neon-blue"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Player Container -->
+    <div id="player-container" class="relative w-full aspect-video bg-black flex items-center justify-center">
+      <!-- Loading State -->
+      <div id="player-loading" class="absolute inset-0 flex flex-col items-center justify-center z-0">
+        <div class="w-12 h-12 border-4 border-neon-purple border-t-neon-blue rounded-full animate-spin mb-4"></div>
+        <div class="text-neon-blue font-cyber animate-pulse tracking-widest">LOADING GAME...</div>
+      </div>
+      
+      <!-- Iframe -->
+      <iframe 
+        id="game-iframe"
+        src={game.url} 
+        width={game.width || "100%"} 
+        height={game.height || "100%"} 
+        scrolling="none" 
+        frameborder="0" 
+        allowfullscreen="true"
+        allow="autoplay; fullscreen"
+        class="w-full h-full relative z-10 opacity-0 transition-opacity duration-1000"
+        onload="this.classList.remove('opacity-0'); document.getElementById('player-loading').style.display='none';"
+      ></iframe>
+    </div>
+    
+    <!-- Game Info Footer -->
+    <div class="p-6 bg-synth-dark/90">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-4">
+          <div>
+            <h3 class="text-lg font-cyber text-neon-pink mb-2">DESCRIPTION</h3>
+            <p class="text-gray-300 font-sans text-sm leading-relaxed">{game.description}</p>
+          </div>
+          {game.instructions && (
+            <div>
+              <h3 class="text-lg font-cyber text-neon-blue mb-2">INSTRUCTIONS</h3>
+              <p class="text-gray-300 font-sans text-sm leading-relaxed">{game.instructions}</p>
+            </div>
+          )}
+        </div>
+        <div>
+          <h3 class="text-lg font-cyber text-neon-purple mb-2">TAGS</h3>
+          <div class="flex flex-wrap gap-2">
+            {game.tags.split(',').map(tag => tag.trim()).filter(Boolean).map(tag => (
+              <span class="px-2 py-1 text-xs font-sans bg-white/5 border border-white/10 rounded text-gray-300">{tag}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    const playerContainer = document.getElementById('player-container');
+    const iframe = document.getElementById('game-iframe') as HTMLIFrameElement;
+
+    fullscreenBtn?.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        if (playerContainer?.requestFullscreen) {
+          playerContainer.requestFullscreen();
+        } else if ((playerContainer as any).webkitRequestFullscreen) { /* Safari */
+          (playerContainer as any).webkitRequestFullscreen();
+        } else if ((playerContainer as any).msRequestFullscreen) { /* IE11 */
+          (playerContainer as any).msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) { /* Safari */
+          (document as any).webkitExitFullscreen();
+        } else if ((document as any).msExitFullscreen) { /* IE11 */
+          (document as any).msExitFullscreen();
+        }
+      }
+    });
+  });
+</script>

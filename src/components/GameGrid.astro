@@ -1,0 +1,29 @@
+---
+// GameGrid.astro
+import type { Game } from '../utils/data';
+import GameCard from './GameCard.astro';
+
+interface Props {
+  games: Game[];
+  title?: string;
+  icon?: string; // Optional SVG string or we can just render the title
+}
+
+const { games, title } = Astro.props;
+---
+<div class="mb-16">
+  {title && (
+    <div class="flex items-center gap-3 mb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <h2 class="text-2xl md:text-3xl font-cyber text-white uppercase tracking-wider">
+        <span class="text-neon-blue">{title.split(' ')[0]}</span> {title.split(' ').slice(1).join(' ')}
+      </h2>
+    </div>
+  )}
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+      {games.map(game => (
+        <GameCard game={game} />
+      ))}
+    </div>
+  </div>
+</div>

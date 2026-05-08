@@ -1,0 +1,83 @@
+---
+// FeaturedCarousel.astro
+import type { Game } from '../utils/data';
+import { slugify } from '../utils/data';
+
+interface Props {
+  games: Game[];
+}
+
+const { games } = Astro.props;
+---
+<div class="mb-16">
+  <div class="flex items-center justify-between mb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <h2 class="text-2xl md:text-3xl font-cyber text-white flex items-center gap-3">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-neon-pink"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      FEATURED <span class="text-neon-pink">ARCHIVES</span>
+    </h2>
+    <div class="flex gap-2">
+      <button id="carousel-prev" class="p-2 rounded-full border border-neon-blue/50 text-neon-blue hover:bg-neon-blue hover:text-synth-dark transition-colors" aria-label="Previous">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <button id="carousel-next" class="p-2 rounded-full border border-neon-blue/50 text-neon-blue hover:bg-neon-blue hover:text-synth-dark transition-colors" aria-label="Next">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="relative w-full overflow-hidden">
+    <!-- Left Gradient -->
+    <div class="absolute left-0 top-0 bottom-0 w-8 md:w-24 bg-gradient-to-r from-[#050510] to-transparent z-10 pointer-events-none"></div>
+    <!-- Right Gradient -->
+    <div class="absolute right-0 top-0 bottom-0 w-8 md:w-24 bg-gradient-to-l from-[#050510] to-transparent z-10 pointer-events-none"></div>
+    
+    <!-- Carousel Container -->
+    <div id="carousel-track" class="flex gap-4 md:gap-6 overflow-x-auto snap-x snap-mandatory px-4 sm:px-6 md:px-24 no-scrollbar pb-8 pt-4">
+      {games.map((game, index) => {
+        const slug = slugify(game.title);
+        return (
+          <div class="snap-center shrink-0 w-[280px] md:w-[400px] lg:w-[500px] relative group glass rounded-xl overflow-hidden cursor-pointer hover:shadow-neon-blue transition-all duration-300 hover:-translate-y-2">
+            <div class="aspect-video w-full overflow-hidden">
+              <img src={game.thumb} alt={game.title} loading={index === 0 ? "eager" : "lazy"} class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-synth-dark via-synth-dark/40 to-transparent flex flex-col justify-end p-6">
+              <div class="translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                <span class="text-xs font-cyber text-neon-blue uppercase tracking-widest border border-neon-blue/50 bg-synth-dark/80 px-2 py-1 rounded inline-block mb-2">{game.category}</span>
+                <h3 class="text-2xl font-sans font-bold text-white mb-2">{game.title}</h3>
+                <p class="text-gray-300 text-sm line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">{game.description.substring(0, 100)}...</p>
+                
+                <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-150">
+                  <a href={`/game/${slug}`} class="inline-flex items-center gap-2 bg-neon-pink text-white font-cyber px-4 py-2 rounded text-sm hover:shadow-neon-pink transition-shadow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7V5z"/></svg>
+                    START GAME
+                  </a>
+                </div>
+              </div>
+            </div>
+            <a href={`/game/${slug}`} class="absolute inset-0 z-10"><span class="sr-only">Play {game.title}</span></a>
+          </div>
+        )
+      })}
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const track = document.getElementById('carousel-track');
+    const prevBtn = document.getElementById('carousel-prev');
+    const nextBtn = document.getElementById('carousel-next');
+
+    if (!track || !prevBtn || !nextBtn) return;
+
+    const scrollAmount = window.innerWidth < 768 ? 280 : 400; // rough width of items
+
+    prevBtn.addEventListener('click', () => {
+      track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    });
+
+    nextBtn.addEventListener('click', () => {
+      track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    });
+  });
+</script>

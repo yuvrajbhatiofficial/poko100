@@ -1,0 +1,312 @@
+---
+// SearchModal.astro
+import { allGames, slugify } from '../utils/data';
+
+// Pre-calculate minimal search data using the official slugify function
+const searchData = allGames.map(g => ({
+  title: g.title,
+  slug: slugify(g.title),
+  thumb: g.thumb,
+  category: g.category
+}));
+---
+
+<div 
+  id="search-modal" 
+  class="fixed inset-0 z-[100] flex items-start justify-center pt-4 md:pt-[5vh] px-2 md:px-4 opacity-0 pointer-events-none transition-all duration-300 ease-out"
+  aria-modal="true"
+  role="dialog"
+  aria-labelledby="search-modal-title"
+>
+  <!-- Backdrop -->
+  <div id="search-backdrop" class="absolute inset-0 bg-[#0a0a0f]/80 backdrop-blur-md transition-opacity cursor-pointer"></div>
+  
+  <!-- Modal Content -->
+  <div 
+    id="search-content"
+    class="relative w-full max-w-[98vw] md:max-w-[90vw] lg:max-w-7xl h-[92vh] md:h-[90vh] bg-white/5 backdrop-blur-3xl border border-white/20 rounded-2xl md:rounded-3xl shadow-[0_0_50px_rgba(168,85,247,0.2)] overflow-hidden transform scale-95 opacity-0 transition-all duration-300 ease-out flex flex-col"
+  >
+    <!-- Search Header -->
+    <div class="relative p-4 md:p-6 border-b border-white/10 flex items-center gap-3 bg-white/5 z-10 shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input 
+        type="text" 
+        id="search-input" 
+        class="w-full bg-transparent border-none outline-none text-white font-sans text-xl md:text-2xl placeholder-white/40 focus:ring-0" 
+        placeholder="Search for awesome games..." 
+        autocomplete="off"
+        role="searchbox"
+        aria-label="Search games"
+      />
+      <div class="hidden sm:flex items-center gap-1 mr-2 text-xs text-white/50 font-cyber">
+        <kbd class="px-2 py-1 bg-white/10 rounded border border-white/20">ESC</kbd>
+      </div>
+      <button id="close-search" aria-label="Close Search" class="text-white/50 hover:text-white transition-colors p-2 rounded-xl hover:bg-white/10">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+    
+    <!-- Scrollable Area -->
+    <div id="search-scroll-area" class="flex-grow overflow-y-auto p-3 md:p-6 no-scrollbar scroll-smooth">
+      
+      <!-- Default State (Infinite Grid) -->
+      <div id="default-container" class="flex flex-col">
+        <h3 class="text-sm md:text-base font-cyber text-neon-blue mb-4 uppercase tracking-widest flex items-center gap-2 drop-shadow-[0_0_5px_rgba(0,255,255,0.5)]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Trending Now
+        </h3>
+        <!-- Grid classes defined to create a masonry-like dense grid -->
+        <div id="default-games-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-3 auto-rows-[110px] sm:auto-rows-[120px] md:auto-rows-[130px] grid-flow-dense pb-8">
+          <!-- Populated by JS -->
+        </div>
+        <!-- Trigger element for infinite scroll -->
+        <div id="load-more-trigger" class="w-full h-20 flex justify-center items-center pb-8">
+          <div class="animate-spin w-8 h-8 border-4 border-neon-pink border-t-transparent rounded-full shadow-[0_0_15px_rgba(255,0,255,0.5)]"></div>
+        </div>
+      </div>
+
+      <!-- Search Results State -->
+      <div id="search-container" class="hidden flex-col">
+        <h3 id="search-results-title" class="text-sm md:text-base font-cyber text-neon-pink mb-4 uppercase tracking-widest flex items-center gap-2 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]">
+          Search Results
+        </h3>
+        <div id="search-games-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-3 auto-rows-[110px] sm:auto-rows-[120px] md:auto-rows-[130px] grid-flow-dense pb-8">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      
+      <!-- Empty State -->
+      <div id="search-empty" class="hidden flex-col items-center justify-center text-center h-full min-h-[50vh]">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-600 mb-6 drop-shadow-md"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <p class="text-gray-300 font-sans text-xl md:text-2xl">No games found matching "<span id="search-query-display" class="text-white font-bold text-neon-pink"></span>"</p>
+        <p class="text-gray-500 text-sm md:text-base mt-2 max-w-md mx-auto">Try checking for typos or searching a different term. Or browse our massive collection above!</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script id="search-data" type="application/json" set:html={JSON.stringify(searchData)}></script>
+
+<script>
+  import Fuse from 'fuse.js';
+
+  const initSearch = () => {
+    const dataElement = document.getElementById('search-data');
+    if (!dataElement) return;
+
+    const games = JSON.parse(dataElement.textContent || '[]');
+    
+    const fuse = new Fuse(games, {
+      keys: [
+        { name: 'title', weight: 0.7 },
+        { name: 'category', weight: 0.3 }
+      ],
+      threshold: 0.4,
+      includeMatches: true,
+      minMatchCharLength: 2
+    });
+
+    const modal = document.getElementById('search-modal');
+    const content = document.getElementById('search-content');
+    const input = document.getElementById('search-input') as HTMLInputElement;
+    
+    const defaultContainer = document.getElementById('default-container');
+    const defaultGamesGrid = document.getElementById('default-games-grid');
+    const loadMoreTrigger = document.getElementById('load-more-trigger');
+    
+    const searchContainer = document.getElementById('search-container');
+    const searchGamesGrid = document.getElementById('search-games-grid');
+    
+    const emptyContainer = document.getElementById('search-empty');
+    const queryDisplay = document.getElementById('search-query-display');
+    const closeBtn = document.getElementById('close-search');
+    const backdrop = document.getElementById('search-backdrop');
+
+    let isOpen = false;
+    let isSearching = false;
+    
+    // Infinite Scroll State
+    let currentDefaultPage = 0;
+    const PAGE_SIZE = 40; // Number of games per infinite scroll batch
+
+    const showElement = (el: HTMLElement | null, display = 'flex') => {
+      if (el) el.style.display = display;
+    };
+    const hideElement = (el: HTMLElement | null) => {
+      if (el) el.style.display = 'none';
+    };
+
+    const openSearch = () => {
+      if(modal && content && !isOpen) {
+        isOpen = true;
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100');
+        
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+        
+        // If we haven't loaded the grid yet, do it now
+        if (currentDefaultPage === 0) {
+          loadMoreDefaultGames();
+        }
+        
+        setTimeout(() => input?.focus(), 50);
+      }
+    };
+
+    const closeSearch = () => {
+      if(modal && content && isOpen) {
+        isOpen = false;
+        document.body.style.overflow = '';
+        modal.classList.remove('opacity-100');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        
+        content.classList.remove('scale-100', 'opacity-100');
+        content.classList.add('scale-95', 'opacity-0');
+        
+        setTimeout(() => {
+          if(input) input.value = '';
+          handleSearch('');
+        }, 300);
+      }
+    };
+
+    // Render logic to generate masonry/dense grid items and Ad Slots
+    const renderGameCards = (gridEl: HTMLElement, gamesToRender: any[], startIndex = 0, clear = true) => {
+      if (!gridEl) return;
+      
+      let html = '';
+      gamesToRender.forEach((gameObj, i) => {
+        const game = gameObj.item || gameObj; // Handle both fuse.js results and direct game objects
+        const globalIndex = startIndex + i;
+        
+        // AD SLOT logic: place an ad every 15 items
+        if (globalIndex > 0 && globalIndex % 15 === 0) {
+          html += `
+            <div class="col-span-2 row-span-2 bg-white/5 backdrop-blur-xl border border-white/20 rounded-2xl flex items-center justify-center relative group overflow-hidden shadow-lg">
+              <span class="text-white/50 font-sans text-lg tracking-widest z-10 font-bold group-hover:text-purple-400 group-hover:scale-110 transition-all">AD SPACE</span>
+              <div class="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <!-- Insert actual Ad script here later -->
+            </div>
+          `;
+        }
+        
+        // MASONRY SPAN logic: generate a visually interesting dense grid
+        let spanClass = 'col-span-1 row-span-1';
+        if (globalIndex % 11 === 0) spanClass = 'col-span-2 row-span-2'; // Big square
+        else if (globalIndex % 7 === 0) spanClass = 'col-span-2 row-span-1'; // Wide rectangle
+        else if (globalIndex % 17 === 0) spanClass = 'col-span-1 row-span-2'; // Tall rectangle
+        
+        const loadingAttr = globalIndex < 12 ? 'eager' : 'lazy';
+        const fetchPriorityAttr = globalIndex < 12 ? 'high' : 'auto';
+
+        html += `
+          <a href="/game/${game.slug}" class="${spanClass} relative group rounded-2xl overflow-hidden block border border-white/10 hover:border-purple-400/50 focus:outline-none focus:border-purple-400 transition-all shadow-lg hover:shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:z-10 bg-white/5 backdrop-blur-sm">
+            <img src="${game.thumb}" alt="${game.title}" loading="${loadingAttr}" fetchpriority="${fetchPriorityAttr}" decoding="async" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3 md:p-4 pointer-events-none">
+              <h4 class="text-white font-bold text-sm md:text-base truncate drop-shadow-md">${game.title}</h4>
+              <span class="text-[10px] md:text-xs text-purple-300 font-cyber uppercase tracking-wider truncate">${game.category}</span>
+            </div>
+          </a>
+        `;
+      });
+      
+      if (clear) {
+        gridEl.innerHTML = html;
+      } else {
+        gridEl.insertAdjacentHTML('beforeend', html);
+      }
+    };
+
+    // Infinite scroll handler for default state
+    const loadMoreDefaultGames = () => {
+      if (isSearching || !defaultGamesGrid) return;
+      
+      const nextGames = games.slice(currentDefaultPage * PAGE_SIZE, (currentDefaultPage + 1) * PAGE_SIZE);
+      if (nextGames.length > 0) {
+        renderGameCards(defaultGamesGrid, nextGames, currentDefaultPage * PAGE_SIZE, currentDefaultPage === 0);
+        currentDefaultPage++;
+      } else {
+        // No more games to load
+        hideElement(loadMoreTrigger);
+      }
+    };
+
+    // Set up Intersection Observer for infinite scrolling
+    if (loadMoreTrigger) {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          loadMoreDefaultGames();
+        }
+      }, { root: document.getElementById('search-scroll-area'), rootMargin: '100px' });
+      
+      observer.observe(loadMoreTrigger);
+    }
+
+    // Search Logic
+    const handleSearch = (query: string) => {
+      if (!query.trim()) {
+        isSearching = false;
+        showElement(defaultContainer, 'flex');
+        hideElement(searchContainer);
+        hideElement(emptyContainer);
+        
+        // Ensure default grid is populated if empty
+        if (currentDefaultPage === 0) loadMoreDefaultGames();
+        return;
+      }
+
+      isSearching = true;
+      hideElement(defaultContainer);
+      
+      // Perform search, allowing up to 100 results for a rich grid
+      const results = fuse.search(query).slice(0, 100);
+      
+      if (results.length === 0) {
+        hideElement(searchContainer);
+        showElement(emptyContainer, 'flex');
+        if (queryDisplay) queryDisplay.textContent = query;
+      } else {
+        showElement(searchContainer, 'flex');
+        hideElement(emptyContainer);
+        if (searchGamesGrid) {
+          renderGameCards(searchGamesGrid, results, 0, true);
+        }
+      }
+    };
+
+    // Event Listeners
+    window.addEventListener('open-search', openSearch as EventListener);
+    closeBtn?.addEventListener('click', closeSearch);
+    backdrop?.addEventListener('click', closeSearch);
+    
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) closeSearch();
+      // Ctrl+K or Cmd+K to open
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        isOpen ? closeSearch() : openSearch();
+      }
+    });
+
+    input?.addEventListener('input', (e) => {
+      handleSearch((e.target as HTMLInputElement).value);
+    });
+    
+    // Quick arrow navigation logic to focus first grid item
+    input?.addEventListener('keydown', (e) => {
+      if (!isOpen) return;
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const activeGrid = isSearching ? searchGamesGrid : defaultGamesGrid;
+        const firstItem = activeGrid?.querySelector('a');
+        if (firstItem) firstItem.focus();
+      }
+    });
+  };
+
+  initSearch();
+  document.addEventListener('astro:page-load', initSearch);
+</script>

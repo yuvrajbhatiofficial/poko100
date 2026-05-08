@@ -1,0 +1,62 @@
+---
+// GameCard.astro
+import type { Game } from '../utils/data';
+import { slugify } from '../utils/data';
+
+interface Props {
+  game: Game;
+}
+
+const { game } = Astro.props;
+const slug = slugify(game.title);
+---
+<div class="group relative rounded-xl overflow-hidden glass transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-neon-pink hover:border-neon-pink cursor-pointer">
+  <!-- Image Container -->
+  <div class="aspect-[4/3] w-full overflow-hidden relative">
+    <img 
+      src={game.thumb} 
+      alt={game.title} 
+      loading="lazy"
+      class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+    />
+    <!-- Overlay Play Button -->
+    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+      <div class="w-12 h-12 rounded-full bg-neon-pink/80 text-white flex items-center justify-center shadow-neon-pink animate-pulse">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="ml-1"><path d="m8 5 11 7-11 7V5z"/></svg>
+      </div>
+    </div>
+    
+    <!-- Category Badge -->
+    <div class="absolute top-2 right-2 bg-synth-dark/80 backdrop-blur text-neon-blue border border-neon-blue text-xs px-2 py-1 rounded font-cyber uppercase tracking-wider shadow-neon-blue">
+      {game.category}
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="p-4 relative">
+    <h3 class="text-white font-sans font-bold text-lg leading-tight mb-1 truncate group-hover:text-neon-pink transition-colors">
+      {game.title}
+    </h3>
+    
+    <!-- Action Bar -->
+    <div class="flex items-center justify-between mt-3">
+      <a href={`/game/${slug}`} class="text-xs font-cyber text-gray-400 group-hover:text-white transition-colors flex items-center gap-1">
+        PLAY NOW 
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      
+      <!-- Favorite Button (Client-side handled via global script if needed, or inline) -->
+      <button 
+        class="text-gray-500 hover:text-neon-purple transition-colors p-1 fav-btn" 
+        data-id={game.id}
+        aria-label="Add to Favorites"
+        onclick="(function(e){ e.preventDefault(); e.stopPropagation(); /* Add fav logic here */ })(event)"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Make entire card clickable by placing a stretched link -->
+  <a href={`/game/${slug}`} class="absolute inset-0 z-10"><span class="sr-only">Play {game.title}</span></a>
+</div>
